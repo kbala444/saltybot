@@ -46,6 +46,9 @@ function loop(){
 			wager.value = "1";
 
 			var btn = document.getElementById("player1");
+			if (btn == null){
+				console.log("HOODWINKED");
+			}
 			btn.click();
 			console.log("clicked");
 			observer.disconnect();
