@@ -34,7 +34,7 @@ function signIn(){
 	}
 }
 
-function loop(){
+/*function loop(){
 	MutationObserver = window.WebKitMutationObserver;
 	var observer = new MutationObserver(function(mutations, observer) {
 		console.log(mutations, observer);
@@ -49,12 +49,41 @@ function loop(){
 			if (btn == null){
 				console.log("HOODWINKED");
 			}
-			btn.click();
-			console.log("clicked");
+			setTimeout(btn.click(), 1000);
 			observer.disconnect();
 		}
 	});
 
 	var target = document.getElementById("fightcard");
 	observer.observe(target, {attributes: true, subtree: true, childList: true});
+}*/
+
+function loop(){
+    $.ajax({
+        type: "get",
+        url: "../state.json",
+        contentType: "application/json; charset=utf-8",
+        data: "",
+        dataType: "json",
+        cache: "false",
+        timeout: 30000,
+	    success: function(data) {
+	    	//  BETS ARE OPEN
+	    	if (data.status !== "locked"){
+	    		var wager = document.getElementById("wager");
+				wager.value = "1";
+
+				var btn = document.getElementById("player1");
+				
+				btn.click();
+	    	} else {
+	    		console.log(data.status);
+	    	}
+
+	    },
+	    error: function() {
+	    	alert("nah");
+	    }
+
+	});
 }
