@@ -1,12 +1,16 @@
 (dp0
-Vthing2
+VFujibayashi suzu
 p1
 (lp2
-I0
-aI1
-asVthing1
-p3
-(lp4
 I1
 aI0
+aI0
+aI1000
+asVDurian EX3
+p3
+(lp4
+I0
+aI1
+aI0
+aI1000
 as.
