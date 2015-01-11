@@ -1,12 +1,12 @@
 (dp0
-VFujibayashi suzu
+VMech rugal
 p1
 (lp2
 I1
 aI0
 aI0
 aI1000
-asVDurian EX3
+asVPocket chunli
 p3
 (lp4
 I0
