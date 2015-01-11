@@ -1,4 +1,4 @@
-CREATE TABLE person (
+CREATE TABLE fighter (
     name TEXT PRIMARY KEY,
     wins INTEGER,
     losses INTEGER,

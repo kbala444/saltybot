@@ -1,10 +1,11 @@
 //  put mutation observer on betstatus div
+var lastMatch = "";
 
 window.addEventListener('load', function(){
 	alert("bruh");
-	signIn();
-	//setInterval(loop, 10000);
-	loop();
+	if(signIn()){
+		loop();
+	}
 }, false);
 
 function signIn(){
@@ -12,21 +13,26 @@ function signIn(){
 	if (signupBtn.length < 1){
 		alert("logged in");
 	} else {
-		console.log("BRUUUUUh");
+		var email = prompt("SaltyBet email (if you don't trust me login to saltybet yourself and refresh the page)", "");
+		var password = prompt("SaltyBet password", "")
 		$.ajax({
 		    url: "http://www.saltybet.com/authenticate?signin=1",
 		    type: "POST",
 		    dataType: "html",
             data: {
-                "email": "drmelonhead@gmail.com",
-                "pword": "lollbob12",
+                "email": email,
+                "pword": password,
                 "authenticate": "signin"
             },
             contentType: "application/x-www-form-urlencoded",
             success: function(text) {
-            	alert("BRUUUUUh " + text);
+            	console.log(text);
+            	if (text.indexOf("Invalid Email") > -1){
+            		alert("Invalid username or password.")
+            		return false;
+            	}
             	location.reload();
-
+            	return true;
             },
             error: function() {
             	alert("nah");
@@ -70,9 +76,9 @@ function update(){
 				btn.click();
 				if (data.status == 1){
 					//  player 1 wins
-					recordMatch(data.p1Name, data.p2Name);
+					recordMatch(data.p1name, data.p2name);
 				} else if (data.status == 2){
-					recordMatch(data.p2Name, data.p1Name);
+					recordMatch(data.p2name, data.p1name);
 				}
 	    	} else {
 	    		console.log(data.status);
@@ -88,12 +94,19 @@ function update(){
 
 function recordMatch(winner, loser){
 	//  send match data to server
+	var match = winner + loser;
+	if (match === lastMatch){
+		return;
+	} else {
+		lastMatch = match;
+	}
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "http://127.0.0.1:5000", true);
+	xhr.open("POST", "http://127.0.0.1:5000/entry", true);
 	xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xhr.onreadystatechange = function() { 
 		console.log("request finished");
 	    console.log(xhr);
+	    lastMatch = match;
 	}
 	xhr.send("winner=" + winner + "&loser=" + loser);
 }
