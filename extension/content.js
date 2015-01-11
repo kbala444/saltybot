@@ -1,7 +1,10 @@
+//  put mutation observer on betstatus div
+
 window.addEventListener('load', function(){
 	alert("bruh");
 	signIn();
-	setInterval(loop, 10000);
+	//setInterval(loop, 10000);
+	loop();
 }, false);
 
 function signIn(){
@@ -34,31 +37,20 @@ function signIn(){
 	}
 }
 
-/*function loop(){
+function loop(){
 	MutationObserver = window.WebKitMutationObserver;
 	var observer = new MutationObserver(function(mutations, observer) {
 		console.log(mutations, observer);
 		console.log('MUTATION BRUH');
-
-		var wager = document.getElementById("wager");
-
-		if (wager != null) {
-			wager.value = "1";
-
-			var btn = document.getElementById("player1");
-			if (btn == null){
-				console.log("HOODWINKED");
-			}
-			setTimeout(btn.click(), 1000);
-			observer.disconnect();
-		}
+		//  something was changed, update.
+		update();
 	});
 
-	var target = document.getElementById("fightcard");
-	observer.observe(target, {attributes: true, subtree: true, childList: true});
-}*/
+	var target = document.getElementById("betstatus");
+	observer.observe(target, {characterData: true, attributes: true});
+}
 
-function loop(){
+function update(){
     $.ajax({
         type: "get",
         url: "../state.json",
@@ -74,16 +66,34 @@ function loop(){
 				wager.value = "1";
 
 				var btn = document.getElementById("player1");
-				
+
 				btn.click();
+				if (data.status == 1){
+					//  player 1 wins
+					recordMatch(data.p1Name, data.p2Name);
+				} else if (data.status == 2){
+					recordMatch(data.p2Name, data.p1Name);
+				}
 	    	} else {
 	    		console.log(data.status);
 	    	}
 
 	    },
 	    error: function() {
-	    	alert("nah");
+	    	alert("error in update");
 	    }
 
 	});
+}
+
+function recordMatch(winner, loser){
+	//  send match data to server
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", "http://127.0.0.1:5000", true);
+	xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xhr.onreadystatechange = function() { 
+		console.log("request finished");
+	    console.log(xhr);
+	}
+	xhr.send("winner=" + winner + "&loser=" + loser);
 }
