@@ -66,20 +66,20 @@ function update(){
         cache: "false",
         timeout: 30000,
 	    success: function(data) {
-	    	//  BETS ARE OPEN
-	    	if (data.status !== "locked"){
+	    	if (data.status == 1){
+	    		//  player 1 wins
+	    		recordMatch(data.p1name, data.p2name);
+	    	} else if (data.status == 2){
+	    		recordMatch(data.p2name, data.p1name);
+	    	}
+	    	else if (data.status !== "locked"){
 	    		var wager = document.getElementById("wager");
-				wager.value = "1";
+				wager.value = getWager(data.p1name, data.p2name);
 
 				var btn = document.getElementById("player1");
 
 				btn.click();
-				if (data.status == 1){
-					//  player 1 wins
-					recordMatch(data.p1name, data.p2name);
-				} else if (data.status == 2){
-					recordMatch(data.p2name, data.p1name);
-				}
+				
 	    	} else {
 	    		console.log(data.status);
 	    	}
@@ -109,4 +109,16 @@ function recordMatch(winner, loser){
 	    lastMatch = match;
 	}
 	xhr.send("winner=" + winner + "&loser=" + loser);
+}
+
+function getWager(p1, p2){
+	var balance = document.getElementById("balance");
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", "http://127.0.0.1:5000/", true);
+	xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xhr.onreadystatechange = function() { 
+		console.log("wager request finished");
+	    console.log(xhr);
+	}
+	xhr.send("p1=" + p1 + "&p2=" + p2 + "&balance=" + balance);
 }

@@ -18,12 +18,9 @@ def entry():
 	winner = request.form['winner']
 	loser = request.form['loser']
 	
-	data, f = load_data()
-	record_match(winner, loser, data)
-	pickle.dump(data, f)
-	f.close()
+	record_match(winner, loser)
 
-	return str(data)
+	return 'recorded'
 
 @app.route("/", methods=['GET'])
 def bet():
@@ -31,12 +28,18 @@ def bet():
 
 	p1 = request.form['p1']
 	p2 = request.form['p2']
+	balance = request.form['balance']
 
-	data, f = load_data()
+	p1_elo = cur.execute('SELECT elo FROM fighter WHERE name=?', (p1,)).fetchone()
+	p2_elo = cur.execute('SELECT elo FROM fighter WHERE name=?', (p2,)).fetchone()
 
-	getElo(data, p1, p2)
+	# if no recorded data, don't bet
+	if p1_elo is None and p2_elo is None:
+		return 0
+	else:
+		return calc_bet(p1_elo, p2_elo, balance)
 
-def record_match(winner, loser, data):
+def record_match(winner, loser):
 	db = get_db()
 	cur = db.cursor()
 
@@ -63,21 +66,6 @@ def record_match(winner, loser, data):
 		cur.execute('UPDATE fighter SET losses=losses+1, total_ratings=total_ratings+?, elo=? WHERE name=?', (winner_elo, new_elo, loser))
 
 	db.commit()
-		#new_elo = update_elo()
-		#c.execute('UPDATE fighter SET wins=wins+1, total_ratings=total_ratings+ NAME Id=?')
-	# if winner in data:
-	# 	data[winner][0] += 1
-	# 	data[winner][2] += data[loser][3]
-	# 	data[winner][3] = update_elo(data[winner])
-	# else:
-	# 	data[winner] = [1, 0, 0, 1000]
-
-	# if loser in data:
-	# 	data[loser][1] += 1
-	# 	data[loser][2] += data[winner][3]
-	# 	data[loser][3] = update_elo(data[loser])
-	# else:
-	# 	data[loser] = [0, 1, 0, 1000]
 
 def load_data():
 	f = open('data.pkl', 'w+b')
@@ -94,6 +82,23 @@ def update_elo(fighter):
 	opponent_ratings = fighter[3]
 	# the algorithm of 400 formula
 	return (opponent_ratings + 400 * (wins - losses))/(wins + losses)
+
+def calc_bet(p1, p2, balance):
+	if p1 is None:
+		p1 = 1000
+	else:
+		p1 = p1[0]
+	if p2 is None:
+		p2 = 1000
+	else:
+		p2 = p2[0]
+
+	if p2 > p1:
+		return 'p2 10'
+	else:
+		return 'p1 10'
+
+
 
 def get_db():
     db = getattr(g, '_database', None)
