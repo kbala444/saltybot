@@ -12,6 +12,7 @@ function signIn(){
 	var signupBtn = document.getElementsByClassName("graybutton");
 	if (signupBtn.length < 1){
 		alert("logged in");
+		return true;
 	} else {
 		var email = prompt("SaltyBet email (if you don't trust me login to saltybet yourself and refresh the page)", "");
 		var password = prompt("SaltyBet password", "")
@@ -112,13 +113,13 @@ function recordMatch(winner, loser){
 }
 
 function getWager(p1, p2){
-	var balance = document.getElementById("balance");
+	var balance = document.getElementById("balance").textContent.replace(",", "");
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", "http://127.0.0.1:5000/", true);
+	xhr.open("GET", "http://127.0.0.1:5000/?p1=" + p1 + "&p2=" + p2 + "&balance=" + balance, true);
 	xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xhr.onreadystatechange = function() { 
 		console.log("wager request finished");
 	    console.log(xhr);
 	}
-	xhr.send("p1=" + p1 + "&p2=" + p2 + "&balance=" + balance);
+	xhr.send();
 }
