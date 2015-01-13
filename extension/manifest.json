@@ -7,17 +7,20 @@
 
   "permissions": [
     "http://127.0.0.1:5000/*",
-    "tabs"
+    "tabs",
+    "notifications"
   ],
   "browser_action": {
     "default_icon": "icon.png",
     "default_popup": "popup.html"
   },
-  "content_scripts": [
-    {
+  "content_scripts": [{
         "run_at": "document_end",
         "matches": ["http://www.saltybet.com/"],
         "js": ["jquery-2.1.3.min.js", "content.js"]
-    }
-]
+  }],
+  "background": {
+    "persistent": false,
+    "scripts": ["background.js"]
+  }
 }

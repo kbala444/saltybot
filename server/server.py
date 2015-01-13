@@ -1,5 +1,5 @@
 # keep track of played matches so elo doesn't get fucked up
-
+import simplejson as json
 import pickle
 from flask import Flask, request, g
 import sqlite3
@@ -32,11 +32,32 @@ def bet():
 	p1_elo = cur.execute('SELECT elo FROM fighter WHERE name=?', (p1,)).fetchone()
 	p2_elo = cur.execute('SELECT elo FROM fighter WHERE name=?', (p2,)).fetchone()
 
-	# if no recorded data, don't bet
+	# if no recorded data, just put in $1 in case of upset
 	if p1_elo is None and p2_elo is None:
-		return 0
+		return 'player1 1'
 	else:
 		return calc_bet(p1_elo, p2_elo, balance)
+
+@app.route("/result", methods=['POST'])
+def result():
+	won = request.form['won']
+	pay = int(request.form['pay'])
+
+	f = open('meta.json', 'r')
+	data = json.load(f)
+	if won == 'true':
+		data['correct'] += 1
+		data['money_won'] += pay
+	else:
+		data['incorrect'] += 1
+		data['money_lost'] += pay
+	f.close()
+	# update json file
+	f = open('meta.json', 'w')
+	f.write(json.dumps(data))
+	f.close()
+
+	return 'recorded'
 
 def record_match(winner, loser):
 	db = get_db()
@@ -46,11 +67,13 @@ def record_match(winner, loser):
 	win_data = cur.fetchone()
 
 	if not win_data:
-		cur.execute('INSERT INTO fighter VALUES(?, ?, ?, ?, ?)', (winner, 1, 0, 1000, 1000))
+		cur.execute('INSERT INTO fighter VALUES(?, ?, ?, ?, ?)', (winner, 1, 0, 1000, 1400))
 	else:
-		loser_elo = cur.execute('SELECT total_ratings FROM fighter WHERE name=?', (loser,)).fetchone()[0]
+		loser_elo = cur.execute('SELECT total_ratings FROM fighter WHERE name=?', (loser,))
 		if not loser_elo:
 			loser_elo = 1000
+		else:
+			loser_elo = cur.fetchone()[0]
 		new_elo = update_elo(win_data)
 		cur.execute('UPDATE fighter SET wins=wins+1, total_ratings=total_ratings+?, elo=? WHERE name=?', (loser_elo, new_elo, winner))
 
@@ -58,7 +81,7 @@ def record_match(winner, loser):
 	lose_data = cur.fetchone()
 
 	if not lose_data:
-		cur.execute('INSERT INTO fighter VALUES(?, ?, ?, ?, ?)', (loser, 0, 1, 1000, 1000))
+		cur.execute('INSERT INTO fighter VALUES(?, ?, ?, ?, ?)', (loser, 0, 1, 1000, 600))
 	else:
 		winner_elo = cur.execute('SELECT total_ratings FROM fighter WHERE name=?', (winner,)).fetchone()[0]
 		new_elo = update_elo(lose_data)
@@ -93,9 +116,9 @@ def calc_bet(p1, p2, balance):
 		p2 = p2[0]
 
 	if p2 > p1:
-		return 'p2 10'
+		return 'player2 10'
 	else:
-		return 'p1 10'
+		return 'player1 10'
 
 
 
