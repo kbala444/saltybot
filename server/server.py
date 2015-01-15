@@ -1,18 +1,16 @@
 # keep track of played matches so elo doesn't get fucked up
 import simplejson as json
 import pickle
-from flask import Flask, request, g
+from flask import Flask, request, g, render_template
 import sqlite3
 
-PROPAGATE_EXCEPTIONS = True
 DEBUG = True
 DATABASE = 'data.db'
 
 app = Flask(__name__)
 app.config.from_object(__name__)
 
-# data in form of [wins, losses, total oponent ratings (defaults to 0), current rating (defaults to 1000)]
-
+# update db with results of match
 @app.route("/entry", methods=['POST'])
 def entry():
 	winner = request.form['winner']
@@ -22,6 +20,7 @@ def entry():
 
 	return 'recorded'
 
+# get wager + player we should bet on given the next two fighters + current balance
 @app.route("/", methods=['GET'])
 def bet():
 	cur = get_db().cursor()
@@ -38,6 +37,7 @@ def bet():
 	else:
 		return calc_bet(p1_elo, p2_elo, balance)
 
+# record result of our bet
 @app.route("/result", methods=['POST'])
 def result():
 	won = request.form['won']
@@ -45,6 +45,7 @@ def result():
 
 	f = open('meta.json', 'r')
 	data = json.load(f)
+	print won
 	if won == 'true':
 		data['correct'] += 1
 		data['money_won'] += pay
@@ -59,6 +60,20 @@ def result():
 
 	return 'recorded'
 
+# get overall bot results
+@app.route("/stats", methods=['GET'])
+def results():
+	f = open('meta.json', 'r')
+	data = json.load(f)
+
+	cor = data['correct']
+	incor = data['incorrect']
+	winrate = str(float(cor)/(cor + incor) * 100) + '%'
+	profit = data['money_won'] - data['money_lost']
+
+	return render_template('stats.html', c=cor, ic=incor, wr=winrate, prof=profit)
+
+# updates db with winner and loser
 def record_match(winner, loser):
 	db = get_db()
 	cur = db.cursor()
@@ -70,7 +85,7 @@ def record_match(winner, loser):
 		cur.execute('INSERT INTO fighter VALUES(?, ?, ?, ?, ?)', (winner, 1, 0, 1000, 1400))
 	else:
 		loser_elo = cur.execute('SELECT total_ratings FROM fighter WHERE name=?', (loser,))
-		if not loser_elo:
+		if loser_elo.fetchone() is None:
 			loser_elo = 1000
 		else:
 			loser_elo = cur.fetchone()[0]
@@ -80,7 +95,7 @@ def record_match(winner, loser):
 	cur.execute('SELECT * FROM fighter WHERE name=?', (loser,))
 	lose_data = cur.fetchone()
 
-	if not lose_data:
+	if lose_data is None:
 		cur.execute('INSERT INTO fighter VALUES(?, ?, ?, ?, ?)', (loser, 0, 1, 1000, 600))
 	else:
 		winner_elo = cur.execute('SELECT total_ratings FROM fighter WHERE name=?', (winner,)).fetchone()[0]
@@ -89,15 +104,7 @@ def record_match(winner, loser):
 
 	db.commit()
 
-def load_data():
-	f = open('data.pkl', 'w+b')
-	try:
-		data = pickle.load(f)
-	except EOFError:	# pickle file is empty
-		data = {}
-
-	return (data, f)
-
+# calculate elo using algorithm of 400
 def update_elo(fighter):
 	wins = fighter[1]
 	losses = fighter[2]
@@ -119,8 +126,6 @@ def calc_bet(p1, p2, balance):
 		return 'player2 10'
 	else:
 		return 'player1 10'
-
-
 
 def get_db():
     db = getattr(g, '_database', None)

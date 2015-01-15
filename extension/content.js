@@ -1,14 +1,16 @@
 //  put mutation observer on betstatus div
 var lastMatch = "";
 var lastStatus = 100;
-var lastBet = "";
+var lastPlayer = "";
+var lastWager = 0;
 
 window.addEventListener('load', function(){
 	if(signIn()){
-		loop();
+		start();
 	}
 }, false);
 
+//  Sign in to SaltyBet, returns true if we are signed in successfully.
 function signIn(){
 	var signupBtn = document.getElementsByClassName("graybutton");
 	if (signupBtn.length < 1){
@@ -46,12 +48,12 @@ function signIn(){
 	}
 }
 
-function loop(){
+//  Checks for updates to the fightcard element on the DOM.
+//  This is updated at the end of every match.
+function start(){
 	MutationObserver = window.WebKitMutationObserver;
 	var observer = new MutationObserver(function(mutations, observer) {
-		console.log(mutations, observer);
-		console.log('MUTATION BRUH');
-		//  something was changed, update.
+		//  Something was changed, update.
 		update();
 	});
 
@@ -59,7 +61,9 @@ function loop(){
 	observer.observe(target, {characterData: true, attributes: true});
 }
 
+//  
 function update(){
+	//  Send ajax request to get current SaltyBet state (stored in state.json).
     $.ajax({
         type: "get",
         url: "../state.json",
@@ -69,47 +73,52 @@ function update(){
         cache: "false",
         timeout: 30000,
 	    success: function(data) {
+	    	//  If nothing has changed, don't do anything.
 	    	if (data.status == lastStatus){
 	    		return;
 	    	} else {
 	    		lastStatus = data.status;
 	    	}
 
-	    	if (data.status == 1){	//  player 1 wins
-	    		//  logic from saltybet
-	    		console.log(p1total);
-	    		console.log(p2total);
+	    	if (data.status == 1){	//  player 1 has won
+	    		//  Calculate expected payout
 	    		p1total = parseInt(data.p1total.replace(/,/g, ""));
 	    		p2total = parseInt(data.p2total.replace(/,/g, ""));
-	    		var payout = Math.ceil((lastBet / p1total) * p2total);
+	    		console.log(p1total);
+	    		var payout = Math.ceil((lastWager / p1total) * p2total);
 	    		console.log(payout);
+	    		console.log(lastWager);
+	    		console.log(lastWager/p1total);
 
-	    		if (lastBet === "player1"){
+	    		//  Checks if we were right or wrong.
+	    		if (lastPlayer === "player1"){
     				recordPayout(true, payout);
-	    		} else {
+	    		} else if (lastPlayer === "player2"){
     				recordPayout(false, payout);
 	    		}
 
 	    		recordMatch(data.p1name, data.p2name);
-	    	} else if (data.status == 2){
+	    	} else if (data.status == 2){	//  player 2 has won
 	    		p1total = parseInt(data.p1total.replace(/,/g, ""));
 	    		p2total = parseInt(data.p2total.replace(/,/g, ""));
-	    		var payout = Math.ceil((lastBet / p2total) * p1total);
+	    		console.log(p1total);
+	    		var payout = Math.ceil((lastWager / p2total) * p1total);
+	    		console.log(payout);
+	    		console.log(lastWager);
+	    		console.log(lastWager/p1total);
 
-				if (lastBet === "player2"){
+				if (lastPlayer === "player2"){
     				recordPayout(true, payout);
-	    		} else {
+	    		} else if (lastPlayer === "player1") {
     				recordPayout(false, payout);
 	    		}
 
 	    		recordMatch(data.p2name, data.p1name);
 	    	}
 	    	else if (data.status !== "locked"){
+	    		//  Bets are open again.
 	    		bet(data.p1name, data.p2name);				
-	    	} else {
-	    		console.log(data.status);
-	    	}
-
+	    	} 
 	    },
 	    error: function() {
 	    	alert("error in update");
@@ -118,8 +127,9 @@ function update(){
 	});
 }
 
+//  Send match data to server.
 function recordMatch(winner, loser){
-	//  send match data to server
+	//  If we're still on the same match, don't do anything.
 	var match = winner + loser;
 	if (match === lastMatch){
 		return;
@@ -131,13 +141,13 @@ function recordMatch(winner, loser){
 	xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xhr.onreadystatechange = function() { 
 		if (xhr.readyState == 4){
-			console.log("request finished");
-		    console.log(xhr);
+			console.log("Recorded match " + winner + "vs. " + loser + ".");
 		}
 	}
 	xhr.send("winner=" + winner + "&loser=" + loser);
 }
 
+//  Get which player and what wager to bet from server and bet.
 function bet(p1, p2){
 	var balance = document.getElementById("balance").textContent.replace(",", "");
 	var xhr = new XMLHttpRequest();
@@ -146,13 +156,15 @@ function bet(p1, p2){
 
 	xhr.onreadystatechange = function() { 
 		if (xhr.readyState == 4){
-			console.log("wager request finished");
 			var res = xhr.response.split(" ");
 			console.log(res);
+		    lastWager = res[1];
+		    wager.value = lastWager;
+		    lastPlayer = res[0];
+		    console.log('lastPlayer ' + lastPlayer);
 
-		    wager.value = res[1];
-		    lastBet = res[0];
-		    var btn = document.getElementById(lastBet);
+		    var btn = document.getElementById(lastPlayer);
+		    console.log(button);
 		    btn.click();
 		}
 	}
@@ -160,6 +172,7 @@ function bet(p1, p2){
 	xhr.send();
 }
 
+//  Send results of bet to server and notify user.
 function recordPayout(won, payout){
 	var xhr = new XMLHttpRequest();
 	xhr.open("POST", "http://127.0.0.1:5000/result", true);
