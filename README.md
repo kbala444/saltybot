@@ -23,6 +23,6 @@ Hopefully I will update the betting strategy with something better.
 
 ## Am I Really Winning Money?
 
-SaltyBot records its stats.  Check out `server/meta.json` or just navigate to [127.0.0.1:5000/entry](http://127.0.0.1:5000/stats) to see how your bot is doing.
+SaltyBot records its stats.  Check out `server/meta.json` or just navigate to [127.0.0.1:5000/stats](http://127.0.0.1:5000/stats) to see how your bot is doing.
 
 
