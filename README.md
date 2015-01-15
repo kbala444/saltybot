@@ -21,4 +21,8 @@ If there is no collected data for either player, SaltyBot will just bet a $1 on 
 
 Hopefully I will update the betting strategy with something better.
 
+## Am I Really Winning Money?
+
+SaltyBot records its stats.  Check out `server/meta.json` or just navigate to [127.0.0.1:5000/entry](http://127.0.0.1:5000/stats) to see how your bot is doing.
+
 
