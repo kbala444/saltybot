@@ -166,7 +166,7 @@ function bet(p1, p2){
 		    setTimeout(function(){
 		    	var btn = document.getElementById(lastPlayer);
 		    	btn.click();
-		    }, 5000);
+		    }, 7000);
 		}
 	}
 
