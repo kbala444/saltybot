@@ -84,8 +84,8 @@ def record_match(winner, loser):
 	if not win_data:
 		cur.execute('INSERT INTO fighter VALUES(?, ?, ?, ?, ?)', (winner, 1, 0, 1000, 1400))
 	else:
-		loser_elo = cur.execute('SELECT total_ratings FROM fighter WHERE name=?', (loser,))
-		if loser_elo.fetchone() is None:
+		cur.execute('SELECT total_ratings FROM fighter WHERE name=?', (loser,))
+		if cur.fetchone() is None:
 			loser_elo = 1000
 		else:
 			loser_elo = cur.fetchone()[0]
