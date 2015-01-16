@@ -54,6 +54,9 @@ function start(){
 	MutationObserver = window.WebKitMutationObserver;
 	var observer = new MutationObserver(function(mutations, observer) {
 		//  Something was changed, update.
+		for (var i = 0; i < mutations.length; i++){
+			console.log('mutation ' + i);
+		}
 		update();
 	});
 
@@ -71,7 +74,7 @@ function update(){
         data: "",
         dataType: "json",
         cache: "false",
-        timeout: 30000,
+        timeout: 50000,
 	    success: function(data) {
 	    	//  If nothing has changed, don't do anything.
 	    	if (data.status == lastStatus){
@@ -84,11 +87,7 @@ function update(){
 	    		//  Calculate expected payout
 	    		p1total = parseInt(data.p1total.replace(/,/g, ""));
 	    		p2total = parseInt(data.p2total.replace(/,/g, ""));
-	    		console.log(p1total);
 	    		var payout = Math.ceil((lastWager / p1total) * p2total);
-	    		console.log(payout);
-	    		console.log(lastWager);
-	    		console.log(lastWager/p1total);
 
 	    		//  Checks if we were right or wrong.
 	    		if (lastPlayer === "player1"){
@@ -101,11 +100,7 @@ function update(){
 	    	} else if (data.status == 2){	//  player 2 has won
 	    		p1total = parseInt(data.p1total.replace(/,/g, ""));
 	    		p2total = parseInt(data.p2total.replace(/,/g, ""));
-	    		console.log(p1total);
 	    		var payout = Math.ceil((lastWager / p2total) * p1total);
-	    		console.log(payout);
-	    		console.log(lastWager);
-	    		console.log(lastWager/p1total);
 
 				if (lastPlayer === "player2"){
     				recordPayout(true, payout);
@@ -121,7 +116,7 @@ function update(){
 	    	} 
 	    },
 	    error: function() {
-	    	alert("error in update");
+	    	console.log("error in update");
 	    }
 
 	});

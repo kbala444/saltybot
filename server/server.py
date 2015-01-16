@@ -85,10 +85,12 @@ def record_match(winner, loser):
 		cur.execute('INSERT INTO fighter VALUES(?, ?, ?, ?, ?)', (winner, 1, 0, 1000, 1400))
 	else:
 		cur.execute('SELECT total_ratings FROM fighter WHERE name=?', (loser,))
-		if cur.fetchone() is None:
+		fetched = cur.fetchone()
+		print fetched
+		if fetched is None:
 			loser_elo = 1000
 		else:
-			loser_elo = cur.fetchone()[0]
+			loser_elo = fetched[0]
 		new_elo = update_elo(win_data)
 		cur.execute('UPDATE fighter SET wins=wins+1, total_ratings=total_ratings+?, elo=? WHERE name=?', (loser_elo, new_elo, winner))
 
@@ -123,9 +125,9 @@ def calc_bet(p1, p2, balance):
 		p2 = p2[0]
 
 	if p2 > p1:
-		return 'player2 10'
+		return 'player2 20'
 	else:
-		return 'player1 10'
+		return 'player1 20'
 
 def get_db():
     db = getattr(g, '_database', None)
