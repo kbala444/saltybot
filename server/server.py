@@ -32,8 +32,8 @@ def bet():
 	p2_elo = cur.execute('SELECT elo FROM fighter WHERE name=?', (p2,)).fetchone()
 
 	# if no recorded data, just put in $1 in case of upset
-	if p1_elo is None and p2_elo is None:
-		return 'player1 1'
+	if p1_elo is None or p2_elo is None:
+		return 'player1 5'
 	else:
 		return calc_bet(p1_elo, p2_elo, balance)
 
@@ -115,9 +115,6 @@ def update_elo(fighter):
 	return (opponent_ratings + 400 * (wins - losses))/(wins + losses)
 
 def calc_bet(p1, p2, balance):
-	if p1 is None or p2 is None:
-		return 'player1 5'
-
 	p1 = p1[0]
 	p2 = p2[0]
 
