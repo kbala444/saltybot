@@ -93,7 +93,7 @@ function update(){
 	    		if (lastPlayer === "player1"){
     				recordPayout(true, payout);
 	    		} else if (lastPlayer === "player2"){
-    				recordPayout(false, payout);
+    				recordPayout(false, lastWager);
 	    		}
 
 	    		recordMatch(data.p1name, data.p2name);
@@ -105,7 +105,7 @@ function update(){
 				if (lastPlayer === "player2"){
     				recordPayout(true, payout);
 	    		} else if (lastPlayer === "player1") {
-    				recordPayout(false, payout);
+    				recordPayout(false, lastWager);
 	    		}
 
 	    		recordMatch(data.p2name, data.p1name);

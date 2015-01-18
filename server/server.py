@@ -115,19 +115,16 @@ def update_elo(fighter):
 	return (opponent_ratings + 400 * (wins - losses))/(wins + losses)
 
 def calc_bet(p1, p2, balance):
-	if p1 is None:
-		p1 = 1000
-	else:
-		p1 = p1[0]
-	if p2 is None:
-		p2 = 1000
-	else:
-		p2 = p2[0]
+	if p1 is None or p2 is None:
+		return 'player1 5'
+
+	p1 = p1[0]
+	p2 = p2[0]
 
 	if p2 > p1:
-		return 'player2 20'
+		return 'player2 30'
 	else:
-		return 'player1 20'
+		return 'player1 30'
 
 def get_db():
     db = getattr(g, '_database', None)
